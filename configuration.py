@@ -17,7 +17,7 @@ from time import sleep
 # If you are running OpenCog in a Vagrant VM and running the Python Client API
 # on the host machine, then set the following parameter 'USE_VAGRANT' to True
 # and specify the ID of your Vagrant VM (you can find this using the command
-# 'vagrant global-status'
+# 'vagrant global-status')
 USE_VAGRANT = False
 VAGRANT_ID = "XXXX"
 
@@ -30,6 +30,17 @@ MONGODB_DATABASE = 'attention-timeseries'
 try:
     import vagrant
     from fabric.api import task, run, settings, hide
+
+    # Allows bash commands to be sent to a specific Vagrant VM
+    @task
+    def run_vagrant_command(machine_name, command):
+        v = vagrant.Vagrant()
+        with settings(host_string=v.user_hostname_port(vm_name=machine_name),
+                      key_filename=v.keyfile(vm_name=machine_name),
+                      disable_known_hosts=True,
+                      warn_only=True):
+            with hide('output'):
+                run(command)
 except ImportError:
     print "Optional Vagrant functionality not enabled; to enable, install " \
           "python-vagrant, fabric"
@@ -76,13 +87,3 @@ else:
     OPENCOG_SOURCE_FOLDER = "/home/vagrant/opencog/opencog/"
     OPENCOG_SUBFOLDER = "/home/vagrant/opencog/build"
 
-# Allows bash commands to be sent to a specific Vagrant VM
-@task
-def run_vagrant_command(machine_name, command):
-    v = vagrant.Vagrant()
-    with settings(host_string=v.user_hostname_port(vm_name=machine_name),
-                  key_filename=v.keyfile(vm_name=machine_name),
-                  disable_known_hosts=True,
-                  warn_only=True):
-        with hide('output'):
-            run(command)
